@@ -1,0 +1,18 @@
+consumes:
+- application/json
+info:
+  contact:
+    email: elf.sternberg@gmail.com
+    name: Elf Sternberg
+    url: https://github.com/elfsternberg/go-timeofday
+  description: Return the time of day. Timezone optional.
+  license:
+    name: apache-2.0
+  title: timeofday
+  version: 0.1.0
+paths: {}
+produces:
+- application/json
+schemes:
+- http
+swagger: "2.0"
