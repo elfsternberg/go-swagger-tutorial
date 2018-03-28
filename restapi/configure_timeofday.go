@@ -8,10 +8,10 @@ import (
 
 	errors "github.com/go-openapi/errors"
 	runtime "github.com/go-openapi/runtime"
-	middleware "github.com/go-openapi/runtime/middleware"
 	graceful "github.com/tylerb/graceful"
 
 	"github.com/elfsternberg/timeofday/restapi/operations"
+	"github.com/elfsternberg/timeofday/clock"
 )
 
 //go:generate swagger generate server --target .. --name  --spec ../swagger.yml
@@ -34,12 +34,8 @@ func configureAPI(api *operations.TimeofdayAPI) http.Handler {
 
 	api.JSONProducer = runtime.JSONProducer()
 
-	api.ClockGetHandler = operations.ClockGetHandlerFunc(func(params operations.ClockGetParams) middleware.Responder {
-		return middleware.NotImplemented("operation .ClockGet has not yet been implemented")
-	})
-	api.ClockPostHandler = operations.ClockPostHandlerFunc(func(params operations.ClockPostParams) middleware.Responder {
-		return middleware.NotImplemented("operation .ClockPost has not yet been implemented")
-	})
+	api.ClockGetHandler = operations.ClockGetHandlerFunc(clock.GetClock)
+	api.ClockPostHandler = operations.ClockPostHandlerFunc(clock.PostClock)
 
 	api.ServerShutdown = func() {}
 
