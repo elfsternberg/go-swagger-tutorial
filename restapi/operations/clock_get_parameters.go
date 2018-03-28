@@ -12,7 +12,7 @@ import (
 	"github.com/go-openapi/runtime"
 	"github.com/go-openapi/runtime/middleware"
 
-	models "github.com/elfsternberg/timeofday/models"
+	strfmt "github.com/go-openapi/strfmt"
 )
 
 // NewClockGetParams creates a new ClockGetParams object
@@ -32,9 +32,9 @@ type ClockGetParams struct {
 	HTTPRequest *http.Request `json:"-"`
 
 	/*Timezone to return
-	  In: body
+	  In: query
 	*/
-	Timezone *models.Timezone
+	Timezone *string
 }
 
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
@@ -46,25 +46,32 @@ func (o *ClockGetParams) BindRequest(r *http.Request, route *middleware.MatchedR
 
 	o.HTTPRequest = r
 
-	if runtime.HasBody(r) {
-		defer r.Body.Close()
-		var body models.Timezone
-		if err := route.Consumer.Consume(r.Body, &body); err != nil {
-			res = append(res, errors.NewParseError("timezone", "body", "", err))
-		} else {
+	qs := runtime.Values(r.URL.Query())
 
-			// validate body object
-			if err := body.Validate(route.Formats); err != nil {
-				res = append(res, err)
-			}
-
-			if len(res) == 0 {
-				o.Timezone = &body
-			}
-		}
+	qTimezone, qhkTimezone, _ := qs.GetOK("timezone")
+	if err := o.bindTimezone(qTimezone, qhkTimezone, route.Formats); err != nil {
+		res = append(res, err)
 	}
+
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (o *ClockGetParams) bindTimezone(rawData []string, hasKey bool, formats strfmt.Registry) error {
+	var raw string
+	if len(rawData) > 0 {
+		raw = rawData[len(rawData)-1]
+	}
+
+	// Required: false
+	// AllowEmptyValue: false
+	if raw == "" { // empty values pass all other validations
+		return nil
+	}
+
+	o.Timezone = &raw
+
 	return nil
 }

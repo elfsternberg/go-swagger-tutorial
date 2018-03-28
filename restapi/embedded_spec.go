@@ -49,12 +49,10 @@ func init() {
         "operationId": "ClockGet",
         "parameters": [
           {
+            "type": "string",
             "description": "Timezone to return",
             "name": "timezone",
-            "in": "body",
-            "schema": {
-              "$ref": "#/definitions/timezone"
-            }
+            "in": "query"
           }
         ],
         "responses": {
@@ -123,7 +121,7 @@ func init() {
       "properties": {
         "code": {
           "type": "integer",
-          "format": "int64"
+          "format": "int32"
         },
         "message": {
           "type": "string"
@@ -185,12 +183,10 @@ func init() {
         "operationId": "ClockGet",
         "parameters": [
           {
+            "type": "string",
             "description": "Timezone to return",
             "name": "timezone",
-            "in": "body",
-            "schema": {
-              "$ref": "#/definitions/timezone"
-            }
+            "in": "query"
           }
         ],
         "responses": {
@@ -259,7 +255,7 @@ func init() {
       "properties": {
         "code": {
           "type": "integer",
-          "format": "int64"
+          "format": "int32"
         },
         "message": {
           "type": "string"

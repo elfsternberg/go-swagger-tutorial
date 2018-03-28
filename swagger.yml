@@ -44,7 +44,7 @@ definitions:
     properties:
       code:
         type: integer
-        format: int64
+        format: int32
       message:
         type: string
     required:
@@ -80,12 +80,11 @@ paths:
       description: "Returns time of day."
       operationId: "ClockGet"
       parameters:
-        - in: "body"
-          name: "timezone"
+        - in: query
+          name: timezone
           description: "Timezone to return"
           required: false
-          schema:
-            $ref: "#/definitions/timezone"
+          type: string
       responses:
         200:
           description: "Returns the time of day."

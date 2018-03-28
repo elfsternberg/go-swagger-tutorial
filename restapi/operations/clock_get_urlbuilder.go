@@ -13,7 +13,11 @@ import (
 
 // ClockGetURL generates an URL for the clock get operation
 type ClockGetURL struct {
+	Timezone *string
+
 	_basePath string
+	// avoid unkeyed usage
+	_ struct{}
 }
 
 // WithBasePath sets the base path for this url builder, only required when it's different from the
@@ -42,6 +46,18 @@ func (o *ClockGetURL) Build() (*url.URL, error) {
 		_basePath = "/timeofday/v1"
 	}
 	result.Path = golangswaggerpaths.Join(_basePath, _path)
+
+	qs := make(url.Values)
+
+	var timezone string
+	if o.Timezone != nil {
+		timezone = *o.Timezone
+	}
+	if timezone != "" {
+		qs.Set("timezone", timezone)
+	}
+
+	result.RawQuery = qs.Encode()
 
 	return &result, nil
 }
