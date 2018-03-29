@@ -54,7 +54,7 @@ paths:
   /time:
     post:
       description: "Returns time of day."
-      operationId: "ClockPost"
+      operationId: "TimePost"
       parameters:
         - in: "body"
           name: "timezone"
@@ -78,7 +78,7 @@ paths:
 
     get:
       description: "Returns time of day."
-      operationId: "ClockGet"
+      operationId: "TimeGet"
       parameters:
         - in: query
           name: timezone
