@@ -11,7 +11,7 @@ import (
 	graceful "github.com/tylerb/graceful"
 
 	"github.com/elfsternberg/timeofday/restapi/operations"
-	"github.com/elfsternberg/timeofday/clock"
+	"github.com/elfsternberg/timeofday/timeofday"
 )
 
 //go:generate swagger generate server --target .. --name  --spec ../swagger.yml
@@ -34,8 +34,8 @@ func configureAPI(api *operations.TimeofdayAPI) http.Handler {
 
 	api.JSONProducer = runtime.JSONProducer()
 
-	api.ClockGetHandler = operations.ClockGetHandlerFunc(clock.GetClock)
-	api.ClockPostHandler = operations.ClockPostHandlerFunc(clock.PostClock)
+	api.ClockGetHandler = operations.ClockGetHandlerFunc(timeofday.GetClock)
+	api.ClockPostHandler = operations.ClockPostHandlerFunc(timeofday.PostClock)
 
 	api.ServerShutdown = func() {}
 

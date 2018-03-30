@@ -1,4 +1,4 @@
-package clock
+package timeofday
 
 import(
 	"time"
