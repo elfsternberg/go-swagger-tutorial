@@ -8,6 +8,7 @@ import (
 
 	errors "github.com/go-openapi/errors"
 	runtime "github.com/go-openapi/runtime"
+	swag "github.com/go-openapi/swag"
 	graceful "github.com/tylerb/graceful"
 
 	"github.com/elfsternberg/timeofday/restapi/operations"
@@ -16,8 +17,17 @@ import (
 
 //go:generate swagger generate server --target .. --name  --spec ../swagger.yml
 
+var Timezone = timeofday.Timezone{
+	Timezone: "UTC",
+}
+
 func configureFlags(api *operations.TimeofdayAPI) {
-	// api.CommandLineOptionsGroups = []swag.CommandLineOptionsGroup{ ... }
+	api.CommandLineOptionsGroups = []swag.CommandLineOptionsGroup{
+		swag.CommandLineOptionsGroup{
+			ShortDescription: "Time Of Day Service Options",
+			Options: &Timezone,
+		},
+	}
 }
 
 func configureAPI(api *operations.TimeofdayAPI) http.Handler {
@@ -34,8 +44,8 @@ func configureAPI(api *operations.TimeofdayAPI) http.Handler {
 
 	api.JSONProducer = runtime.JSONProducer()
 
-	api.ClockGetHandler = operations.ClockGetHandlerFunc(timeofday.GetClock)
-	api.ClockPostHandler = operations.ClockPostHandlerFunc(timeofday.PostClock)
+	api.TimeGetHandler = operations.TimeGetHandlerFunc(timeofday.GetTime(&Timezone))
+	api.TimePostHandler = operations.TimePostHandlerFunc(timeofday.PostTime(&Timezone))
 
 	api.ServerShutdown = func() {}
 

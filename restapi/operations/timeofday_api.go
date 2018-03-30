@@ -37,11 +37,11 @@ func NewTimeofdayAPI(spec *loads.Document) *TimeofdayAPI {
 		BearerAuthenticator: security.BearerAuth,
 		JSONConsumer:        runtime.JSONConsumer(),
 		JSONProducer:        runtime.JSONProducer(),
-		ClockGetHandler: ClockGetHandlerFunc(func(params ClockGetParams) middleware.Responder {
-			return middleware.NotImplemented("operation ClockGet has not yet been implemented")
+		TimeGetHandler: TimeGetHandlerFunc(func(params TimeGetParams) middleware.Responder {
+			return middleware.NotImplemented("operation TimeGet has not yet been implemented")
 		}),
-		ClockPostHandler: ClockPostHandlerFunc(func(params ClockPostParams) middleware.Responder {
-			return middleware.NotImplemented("operation ClockPost has not yet been implemented")
+		TimePostHandler: TimePostHandlerFunc(func(params TimePostParams) middleware.Responder {
+			return middleware.NotImplemented("operation TimePost has not yet been implemented")
 		}),
 	}
 }
@@ -74,10 +74,10 @@ type TimeofdayAPI struct {
 	// JSONProducer registers a producer for a "application/json" mime type
 	JSONProducer runtime.Producer
 
-	// ClockGetHandler sets the operation handler for the clock get operation
-	ClockGetHandler ClockGetHandler
-	// ClockPostHandler sets the operation handler for the clock post operation
-	ClockPostHandler ClockPostHandler
+	// TimeGetHandler sets the operation handler for the time get operation
+	TimeGetHandler TimeGetHandler
+	// TimePostHandler sets the operation handler for the time post operation
+	TimePostHandler TimePostHandler
 
 	// ServeError is called when an error is received, there is a default handler
 	// but you can set your own with this
@@ -141,12 +141,12 @@ func (o *TimeofdayAPI) Validate() error {
 		unregistered = append(unregistered, "JSONProducer")
 	}
 
-	if o.ClockGetHandler == nil {
-		unregistered = append(unregistered, "ClockGetHandler")
+	if o.TimeGetHandler == nil {
+		unregistered = append(unregistered, "TimeGetHandler")
 	}
 
-	if o.ClockPostHandler == nil {
-		unregistered = append(unregistered, "ClockPostHandler")
+	if o.TimePostHandler == nil {
+		unregistered = append(unregistered, "TimePostHandler")
 	}
 
 	if len(unregistered) > 0 {
@@ -250,12 +250,12 @@ func (o *TimeofdayAPI) initHandlerCache() {
 	if o.handlers["GET"] == nil {
 		o.handlers["GET"] = make(map[string]http.Handler)
 	}
-	o.handlers["GET"]["/time"] = NewClockGet(o.context, o.ClockGetHandler)
+	o.handlers["GET"]["/time"] = NewTimeGet(o.context, o.TimeGetHandler)
 
 	if o.handlers["POST"] == nil {
 		o.handlers["POST"] = make(map[string]http.Handler)
 	}
-	o.handlers["POST"]["/time"] = NewClockPost(o.context, o.ClockPostHandler)
+	o.handlers["POST"]["/time"] = NewTimePost(o.context, o.TimePostHandler)
 
 }
 

@@ -46,7 +46,7 @@ func init() {
     "/time": {
       "get": {
         "description": "Returns time of day.",
-        "operationId": "ClockGet",
+        "operationId": "TimeGet",
         "parameters": [
           {
             "type": "string",
@@ -78,7 +78,7 @@ func init() {
       },
       "post": {
         "description": "Returns time of day.",
-        "operationId": "ClockPost",
+        "operationId": "TimePost",
         "parameters": [
           {
             "description": "Timezone to return",
@@ -180,7 +180,7 @@ func init() {
     "/time": {
       "get": {
         "description": "Returns time of day.",
-        "operationId": "ClockGet",
+        "operationId": "TimeGet",
         "parameters": [
           {
             "type": "string",
@@ -212,7 +212,7 @@ func init() {
       },
       "post": {
         "description": "Returns time of day.",
-        "operationId": "ClockPost",
+        "operationId": "TimePost",
         "parameters": [
           {
             "description": "Timezone to return",

@@ -11,8 +11,8 @@ import (
 	golangswaggerpaths "path"
 )
 
-// ClockGetURL generates an URL for the clock get operation
-type ClockGetURL struct {
+// TimeGetURL generates an URL for the time get operation
+type TimeGetURL struct {
 	Timezone *string
 
 	_basePath string
@@ -23,7 +23,7 @@ type ClockGetURL struct {
 // WithBasePath sets the base path for this url builder, only required when it's different from the
 // base path specified in the swagger spec.
 // When the value of the base path is an empty string
-func (o *ClockGetURL) WithBasePath(bp string) *ClockGetURL {
+func (o *TimeGetURL) WithBasePath(bp string) *TimeGetURL {
 	o.SetBasePath(bp)
 	return o
 }
@@ -31,12 +31,12 @@ func (o *ClockGetURL) WithBasePath(bp string) *ClockGetURL {
 // SetBasePath sets the base path for this url builder, only required when it's different from the
 // base path specified in the swagger spec.
 // When the value of the base path is an empty string
-func (o *ClockGetURL) SetBasePath(bp string) {
+func (o *TimeGetURL) SetBasePath(bp string) {
 	o._basePath = bp
 }
 
 // Build a url path and query string
-func (o *ClockGetURL) Build() (*url.URL, error) {
+func (o *TimeGetURL) Build() (*url.URL, error) {
 	var result url.URL
 
 	var _path = "/time"
@@ -63,7 +63,7 @@ func (o *ClockGetURL) Build() (*url.URL, error) {
 }
 
 // Must is a helper function to panic when the url builder returns an error
-func (o *ClockGetURL) Must(u *url.URL, err error) *url.URL {
+func (o *TimeGetURL) Must(u *url.URL, err error) *url.URL {
 	if err != nil {
 		panic(err)
 	}
@@ -74,17 +74,17 @@ func (o *ClockGetURL) Must(u *url.URL, err error) *url.URL {
 }
 
 // String returns the string representation of the path with query string
-func (o *ClockGetURL) String() string {
+func (o *TimeGetURL) String() string {
 	return o.Must(o.Build()).String()
 }
 
 // BuildFull builds a full url with scheme, host, path and query string
-func (o *ClockGetURL) BuildFull(scheme, host string) (*url.URL, error) {
+func (o *TimeGetURL) BuildFull(scheme, host string) (*url.URL, error) {
 	if scheme == "" {
-		return nil, errors.New("scheme is required for a full url on ClockGetURL")
+		return nil, errors.New("scheme is required for a full url on TimeGetURL")
 	}
 	if host == "" {
-		return nil, errors.New("host is required for a full url on ClockGetURL")
+		return nil, errors.New("host is required for a full url on TimeGetURL")
 	}
 
 	base, err := o.Build()
@@ -98,6 +98,6 @@ func (o *ClockGetURL) BuildFull(scheme, host string) (*url.URL, error) {
 }
 
 // StringFull returns the string representation of a complete url
-func (o *ClockGetURL) StringFull(scheme, host string) string {
+func (o *TimeGetURL) StringFull(scheme, host string) string {
 	return o.Must(o.BuildFull(scheme, host)).String()
 }

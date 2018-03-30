@@ -11,15 +11,8 @@ import(
 )
 
 
-
 func getTimeOfDay(tz *string) (*string, error) {
-	defaultTZ := "UTC"
-	
 	t := time.Now()
-	if tz == nil {
-		tz = &defaultTZ
-	}
-
 	utc, err := time.LoadLocation(*tz)
 	if err != nil {
 		return nil, errors.New(fmt.Sprintf("Time zone not found: %s", *tz))
@@ -30,47 +23,52 @@ func getTimeOfDay(tz *string) (*string, error) {
 }
 
 
-func GetClock(params operations.ClockGetParams) middleware.Responder {
-	var tz *string = nil
-
-	if (params.Timezone != nil) {
-		tz = params.Timezone
-	}
+func GetTime(timezone *Timezone) func(operations.TimeGetParams) middleware.Responder{
+	defaultTZ := timezone.Timezone
 	
-	thetime, err := getTimeOfDay(tz)
-	if err != nil {
-		return operations.NewClockGetNotFound().WithPayload(
-			&models.ErrorResponse {
-				int32(operations.ClockGetNotFoundCode),
-				swag.String(fmt.Sprintf("%s", err)),
+	return func(params operations.TimeGetParams) middleware.Responder {
+		var tz *string = &defaultTZ
+		if (params.Timezone != nil) {
+			tz = params.Timezone
+		}
+		
+		thetime, err := getTimeOfDay(tz)
+		if err != nil {
+			return operations.NewTimeGetNotFound().WithPayload(
+				&models.ErrorResponse {
+					int32(operations.TimeGetNotFoundCode),
+					swag.String(fmt.Sprintf("%s", err)),
+				})
+		}
+		
+		return operations.NewTimeGetOK().WithPayload(
+			&models.Timeofday{
+				Timeofday: *thetime,
 			})
 	}
-
-	return operations.NewClockGetOK().WithPayload(
-		&models.Timeofday{
-			Timeofday: *thetime,
-		})
 }
 
+func PostTime(timezone *Timezone) func(operations.TimePostParams) middleware.Responder{
+	defaultTZ := timezone.Timezone
 
-func PostClock(params operations.ClockPostParams) middleware.Responder {
-	var tz *string = nil
-
-	if (params.Timezone != nil) {
-		tz = params.Timezone.Timezone
-	}
-
-	thetime, err := getTimeOfDay(tz)
-	if err != nil {
-		return operations.NewClockPostNotFound().WithPayload(
-			&models.ErrorResponse {
-				int32(operations.ClockPostNotFoundCode),
-				swag.String(fmt.Sprintf("%s", err)),
+	return func(params operations.TimePostParams) middleware.Responder {
+		var tz *string = &defaultTZ
+		if (params.Timezone != nil) {
+			tz = params.Timezone.Timezone
+		}
+		
+		thetime, err := getTimeOfDay(tz)
+		if err != nil {
+			return operations.NewTimePostNotFound().WithPayload(
+				&models.ErrorResponse {
+					int32(operations.TimePostNotFoundCode),
+					swag.String(fmt.Sprintf("%s", err)),
+				})
+		}
+		
+		return operations.NewTimePostOK().WithPayload(
+			&models.Timeofday{
+				Timeofday: *thetime,
 			})
 	}
-
-	return operations.NewClockPostOK().WithPayload(
-		&models.Timeofday{
-			Timeofday: *thetime,
-		})
 }
