@@ -15,18 +15,18 @@ import (
 	models "github.com/elfsternberg/timeofday/models"
 )
 
-// NewClockPostParams creates a new ClockPostParams object
+// NewTimePostParams creates a new TimePostParams object
 // no default values defined in spec.
-func NewClockPostParams() ClockPostParams {
+func NewTimePostParams() TimePostParams {
 
-	return ClockPostParams{}
+	return TimePostParams{}
 }
 
-// ClockPostParams contains all the bound params for the clock post operation
+// TimePostParams contains all the bound params for the time post operation
 // typically these are obtained from a http.Request
 //
-// swagger:parameters ClockPost
-type ClockPostParams struct {
+// swagger:parameters TimePost
+type TimePostParams struct {
 
 	// HTTP Request Object
 	HTTPRequest *http.Request `json:"-"`
@@ -40,8 +40,8 @@ type ClockPostParams struct {
 // BindRequest both binds and validates a request, it assumes that complex things implement a Validatable(strfmt.Registry) error interface
 // for simple values it will use straight method calls.
 //
-// To ensure default values, the struct must have been initialized with NewClockPostParams() beforehand.
-func (o *ClockPostParams) BindRequest(r *http.Request, route *middleware.MatchedRoute) error {
+// To ensure default values, the struct must have been initialized with NewTimePostParams() beforehand.
+func (o *TimePostParams) BindRequest(r *http.Request, route *middleware.MatchedRoute) error {
 	var res []error
 
 	o.HTTPRequest = r
