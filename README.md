@@ -6,8 +6,10 @@ single parameter either via GET or POST to specify the timezone from
 which the client wants the time.
 
 This repository exists as a supplement to my tutorial,
-[Adding Command Line Arguments to Go-Swagger](TK:), in which I do
-exactly that.
+[Adding Command Line Arguments to Go Swagger Microservices](http://www.elfsternberg.com/2018/03/30/writing-microservice-swagger-part-3-adding-command-line-arguments/),
+in which I show how to do exactly that, by providing a dynamic way to
+configure the default timezone at server start-up, via the CLI or an
+environment variable.
 
 # Status
 
