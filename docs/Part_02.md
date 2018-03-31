@@ -1,19 +1,26 @@
 # Review of Part One
 
-In [Part One of Go-Swagger](TK:), we generated a on OpenAPI 2.0 server
-with REST endpoints.  The server builds and responds to queries, but
-every valid query ends with "This feature has not yet been
-implemented."
+In
+[Part One of Go-Swagger](http://www.elfsternberg.com/2018/03/30/writing-microservice-swagger-part-1-specification/),
+we generated a on OpenAPI 2.0 server with REST endpoints.  The server
+builds and responds to queries, but every valid query ends with "This
+feature has not yet been implemented."
 
 It's time to implement the feature.
 
 I want to emphasize that with Go Swagger there is *only* one generated
-file you need to touch.  Since our project is named `timezone`, the
-file will be named `restapi/configure_timezone.go`.  Our first step
+file you need to touch.  Since our project is named `timeofday`, the
+file will be named `restapi/configure_timeofday.go`.  Our first step
 will be to break those "not implemented" functions out into their own
 Go package.  That package will be our business logic.  The configure
 file and the business logic package will be the *only* things we
 change.
+
+A reminder: The final source code for this project is available on
+Github, however Parts One & Two deal with the most common
+implementation, a server with hard-coded default values.  For these
+chapters, please consult
+[that specific version of the code](https://github.com/elfsternberg/go-swagger-tutorial/tree/0.2.0).
 
 ## Break out the business logic
 
@@ -21,17 +28,20 @@ Create a new folder in your project root and call it `timeofday`.
 
 Open up your editor and find the file `restapi/configure_timeofday.go`.
 In your `swagger.yml` file you created two endpoints and gave them each
-an `operationId`: `TimekPost` and `TimeGet`.  Inside
+an `operationId`: `TimePost` and `TimeGet`.  Inside
 `configure_timeofday.go`, you should find two corresponding assignments
 in the function `configureAPI()`: `TimeGetHandlerFunc` and
-`ClockPostHandlerFunc`.  Inside those function calls, you'll find
+`TimePostHandlerFunc`.  Inside those function calls, you'll find
 anonymous functions.
 
 I want you to take those anonymous functions, cut them out, and paste
 them into a new file inside the `timeofday/` folder.  You will also have
 to create a package name and import any packages being used.  Now your
-file, which I've called `timeofday/handlers.go`, looks like this:
+file, which I've called `timeofday/handlers.go`, looks like this (note
+that you'll have to change your import paths as you're probably not
+elfsternberg.  Heck, _I'm_ probably not elfsternberg):
 
+```
 <<handlers.go before implementation>>=
 package timeofday
 
@@ -48,15 +58,18 @@ func PostTime(params operations.TimePostParams) middleware.Responder {
   return middleware.NotImplemented("operation .TimePost has not yet been implemented")
 }
 @
+```
 
 And now go back to `restapi/configure_timeofday.go`, add
 `github.com/elfsternberg/timeofday/clock` to the imports, and change the
 handler lines to look like this:
 
+```
 <<configuration lines before implementation>>=
 	api.TimeGetHandler = operations.TimeGetHandlerFunc(timeofday.GetTime)
 	api.TimePostHandler = operations.TimePostHandlerFunc(timeofday.PostTime)
 @
+```
 
 ## Implementation
 
@@ -90,6 +103,7 @@ and then return either a success message or an error message.  Looking
 in the operations files, there are a methods for good and bad returns,
 as we described in the swagger file.
 
+```
 <<gettime implementation>>=
 func GetTime(params operations.TimeGetParams) middleware.Responder {
 	var tz *string = nil
@@ -101,6 +115,7 @@ func GetTime(params operations.TimeGetParams) middleware.Responder {
 	thetime, err := getTimeOfDay(params.Timezone)
 
 @
+```
 
 The first thing to notice here is the `params` field: we're getting a
 customized, tightly bound object from the server.  There's no hope of
@@ -113,6 +128,7 @@ We then call a (thus far undefined) function called `getTimeOfDay`.
 
 Let's deal with the error case:
 
+```
 <<gettime implementation>>=
 	if err != nil {
 		return operations.NewTimeGetNotFound().WithPayload(
@@ -122,6 +138,7 @@ Let's deal with the error case:
 			})
 	}
 @
+```
 
 That's a lot of references.  We have a model, an operation, and what's
 that "swag" thing?  In order to satisfy Swagger's strictness, we use
@@ -134,6 +151,7 @@ the response with content.
 
 The good path is similar:
 
+```
 <<gettime implementation>>=
 	return operations.NewClockGetOK().WithPayload(
 		&models.Timeofday{
@@ -141,8 +159,64 @@ The good path is similar:
 		})
 }
 @
+```
 
 Now might be a good time to go look in `models/` and `/restapi/options`,
 to see what's available to you.  You'll need to do so anyway, because
 unless you go to the
-[git repository](https://github.com/elfsternberg/go-swagger-tutorial)
+[git repository](https://github.com/elfsternberg/go-swagger-tutorial/tree/0.2.0)
+and cheat, I'm going to leave it up to you to implement the PostTime().
+
+There's still one thing missing, though: the actual time of day.  We'll
+need a default, and we'll need to test to see if the default is needed.
+The implementation is straightforward:
+
+```
+<<timeofday function>>=
+func getTimeOfDay(tz *string) (*string, error) {
+        defaultTZ := "UTC"
+
+        t := time.Now()
+        if tz == nil {
+                tz = &defaultTZ
+        }
+
+        utc, err := time.LoadLocation(*tz)
+        if err != nil {
+                return nil, errors.New(fmt.Sprintf("Time zone not found: %s", *tz))
+        }
+
+        thetime := t.In(utc).String()
+        return &thetime, nil
+}
+@
+```
+
+Now, if you've written everything correctly, and the compiler admits
+that you have (or you can cheat and download the 0.2.0-tagged version
+from the the repo), you'll be able to build, compile, and run the
+server, and see it working:
+
+```
+$ go build ./cmd/timeofday-server/
+$ ./timeofday-server --port=8080
+```
+
+And then test it with curl:
+
+```
+$ curl 'http://localhost:8020/timeofday/v1/time'
+{"timeofday":"2018-03-31 02:57:48.814683375 +0000 UTC"}
+$ curl 'http://localhost:8020/timeofday/v1/time?timezone=UTC'
+{"timeofday":"2018-03-31 02:57:50.443200906 +0000 UTC"}
+$ curl 'http://localhost:8020/timeofday/v1/time?timezone=America/Los_Angeles'
+{"timeofday":"2018-03-30 19:57:59.886650128 -0700 PDT"}
+```
+
+And that's the end of Part 2.  If you've gotten this far,
+congratulations!  Just a reminder, a working version of this server is
+available under the "0.2.0" tag
+[at the repo](https://github.com/elfsternberg/go-swagger-tutorial/tree/0.2.0).
+
+On to [Part 3](TK)
+

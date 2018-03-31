@@ -11,6 +11,23 @@ But if you're writing microservices for enterprise customers, yes, you
 should use Go, and yes, you should use OpenAPI and Swagger.  So here's
 how it's done.
 
+All of the files for this tutorial are available from the
+elfsternberg/go-swagger-tutorial repo at github.  There are *two* phases
+to this tutorial, and the first phase is the base Go Swagger
+implementation.  I strongly recommend that if you're going to check out
+the source code in its entirety, that you start with the
+[Basic Version](https://github.com/elfsternberg/go-swagger-tutorial/tree/0.2.0),
+and only check out the
+[Advanced version](https://github.com/elfsternberg/go-swagger-tutorial/tree/0.4.0)
+when you get to Part 3.
+
+Just be aware that if you see stuff that looks like `<<this>>`, or a
+single `@` alone on a line, that's just part of my code layout; do *not*
+include those in your source code, they're not part of Go or Swagger.
+Sorry about that.
+
+## Go Swagger!
+
 [Swagger](https://swagger.io/) is a specification that describes the
 ndpoints for a webserver's API, usually a REST-based API.  HTTP uses
 verbs (GET, PUT, POST, DELETE) and endpoints (/like/this) to describe
@@ -36,12 +53,12 @@ functions with your business logic.
 There are three things that are your responsibility:
 
 1. Write the specification that describes *exactly* what the server
-accepts as requests and returns as responses.
+accepts as requests and returns as responses, and generate a server from
+this specification.
 
 2. Write the business logic.
 
-3. Glue the business logic into the server generated from the
-specification.
+3. Glue the business logic into the generated server.
 
 In Go-Swagger, there is *exactly one* file in the generated code that
 you need to change.  Every other file is labeled "DO NOT EDIT."  This
@@ -63,6 +80,7 @@ can just:
 $ go get -u github.com/golang/dep/cmd/dep
 $ go get -u github.com/go-swagger/go-swagger/cmd/swagger
 ```
+
 
 ## Initialization
 
@@ -91,15 +109,18 @@ optional timezone as a JSON argument in the body of the POST.
 
 First, let's version our API.  You do that with Basepaths:
 
+```
 <<version the API>>=
 basePath: /timeofday/v1
 @
+```
 
 Now that we have a base path that versions our API, we want to define
 our endpoint.  The URL will ultimately be `/timeofday/v1/time`, and we
 want to handle both GET and POST requests, and our responses are going
 to be **Success: Time of day** or **Timezone Not Found**.  
 
+```
 <<define the paths>>=
 paths:
   /time:
@@ -133,11 +154,13 @@ paths:
           schema:
             $ref: "#/definitions/NotFound"
 @
+```
 
 The `$ref` entries are a YAML thing for referring to something else.
-The octothorpe symbol `(#)` indicates "look in the current file.  So
+The octothorpe symbol `(#)` indicates "look in the current file."  So
 now we have to create those paths:
 
+```
 <<schemas>>=
 definitions:
   NotFound:
@@ -158,6 +181,7 @@ definitions:
     properties:
       TimeOfDay: string
 @
+```
 
 This is *really verbose*, but on the other hand it is *undeniably
 complete*: these are the things we take in, and the things we respond
@@ -165,6 +189,7 @@ with.
 
 So now your file looks like this:
 
+```
 <<swagger.yml>>=
 swagger: "2.0"
 info:
@@ -186,14 +211,19 @@ schemes:
 
 <<define the paths>>
 @
+```
 
 Now that you have that, it's time to generate the server!  
 
 `$ swagger generate server -f swagger.yml`
 
 It will spill out the actions it takes as it generates your new REST
-server.  **Do not** follow the advice at the end of the output.
-There's a better way.
+server.  **Do not** follow the advice at the end of the output.  There's
+a better way.  Use `dep`, which will automagically find all your
+dependencies for you, download them to a project-specific `vendor/`
+folder, and _lock_ the specific commit in the record so version creep
+won't break your project in the future.  `dep` has become even Google's
+recommended dependency control mechanism.  Just run:
 
 `$ dep init`
 
@@ -224,4 +254,4 @@ $ curl http://localhost:8082/timeofday/v1/time
 Congratulations!  You have a working REST server that does, well,
 nothing.
 
-For part two, we'll make our server actually do things.
+For Part 2, we'll make our server actually do things.
