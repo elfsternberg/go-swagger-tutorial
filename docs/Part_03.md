@@ -1,17 +1,18 @@
-# Adding Command Line Arguments to the Swagger Server
+The first two parts of my swagger tutorial
+[[Part 1](http://www.elfsternberg.com/2018/03/30/writing-microservice-swagger-part-1-specification/),
+[Part 2](http://www.elfsternberg.com/2018/03/30/writing-microservice-swagger-part-2-business-logic/)]
+were dedicated to the straightforward art of getting swagger up and
+running.  While I hope they're helpful, the whole point of those was to
+get you to the point where you had the Timezone project, so I could show
+you how to add Command Line Arguments to a Swagger microservice.
 
-The first two parts of my swagger tutorial were dedicated to the
-straightforward art of getting swagger up and running.  While I hope
-they're helpful, the whole point of those was to get you to the point
-where you had the Timezone project, so I could teach how to extend the
-Command Line Arguments of a swagger project.
-
-Nobody else, so far as I know, knows how to do this.  One thing that I
-emphasized in [Go Swagger Part 2](TK:) was that `configure_timeofday.go`
-is the *only* file you should be touching, it's the interface between
-the server and your business logic.  Every example of adding new flags
-to the command line, even the ones provided by the GoSwagger authors,
-starts by modifying the file `cmd/\<project\>-server/main.go`, one of
+One thing that I emphasized in
+[Go Swagger Part 2](http://www.elfsternberg.com/2018/03/30/writing-microservice-swagger-part-2-business-logic/)
+was that `configure_timeofday.go` is the *only* file you should be
+touching, it's the interface between the server and your business logic.
+Every example of adding new flags to the command line, even
+[the one provided by the GoSwagger authors](https://github.com/go-openapi/kvstore/blob/master/cmd/kvstored/main.go#L50-L57),
+starts by modifying the file `cmd/<project>-server/main.go`, one of
 those files clearly marked `// DO NOT EDIT`.
 
 We're not going to edit files marked `// DO NOT EDIT`.
@@ -23,7 +24,7 @@ uses for handling command line arguments, `go-flags`.
 
 `go-flags` is the tool Swagger uses by default for handling command line
 arguments.  It's a clever tool that uses Go's
-[tags and retrospection](TK:) features to encade the details of the CLI
+[tags and reflection](https://golang.org/pkg/reflect/) features to encade the details of the CLI
 directly into a structure that will hold the options passed in on the
 command line.
 
@@ -129,9 +130,17 @@ do we set the context?
 The *correct* way is to modify the handlers so they have the context
 when they're called upon.  The way we do that is via the oldest
 object-oriented technique of all time, one that dates all the way back
-to 1959 and the invention of Lisp: *closures*.
+to 1964 and the invention of Lisp:
+*[closures](https://tour.golang.org/moretypes/25)*.  A closure *wraps*
+one or more functions in an environment (a collection of variables
+outside those functions), and preserves handles to those variables even
+when those functions are passed out of the environment as references.  A
+garbage-collected language like Go makes this an especially powerful
+technique because it means that anything in the environment for which
+you *don't* keep handles will get collected, leaving only what matters.
 
-Remember these lines in `configure_timeofday.go`, from way back?
+So, let's do it.  Remember these lines in `configure_timeofday.go`, from
+way back?
 
 ```
 	api.TestGetHandler = operations.TestGetHandlerFunc(func(params operations.TestGetParams) middleware.Responder {
@@ -151,24 +160,25 @@ replace those lines, *again*, so they look like this:
 
 Those are no longer references to functions.  They're *function calls*!
 What do those functions return?  Well, we know TimeGetHandlerFunc() is
-expecting a function, so so that function call had better return a
-function.
+expecting a referece to a function, so so that function call had better
+return a reference to a function.
 
-And indeed it does.
+And indeed it does:
 
 ```
 func GetTime(timezone *Timezone) func(operations.TimeGetParams) middleware.Responder{
 	defaultTZ := timezone.Timezone
-	
+
+    // Here's the function we return:
 	return func(params operations.TimeGetParams) middleware.Responder {
-    // Everything else is the same... except we need *two* levels of
-    // closing } at the end!
+        // Everything else is the same... except we need *two* levels of
+        // closing } at the end!
 ```
 
 Now, instead of returning a function defined at compile time, we
-returned a function that is finalized when GetTime() is called, and it
-now holds a permanent reference to our Timezone object.  Do the same
-thing for `PostTime`.
+returned a function reference that is finalized when GetTime() is
+called, and it now holds a permanent reference to our Timezone object.
+Do the same thing for `PostTime`.
 
 There's one more thing we have to do.  We've moved our default timezone
 to the `configure_timeofday.go` file, so we don't need it here anymore:
@@ -190,8 +200,31 @@ And that's it.  That's everything.  You can add all the command line
 arguments you want, and only preserve the fields that are relevant to
 the particular handler you're going to invoke.
 
+You can now build and run the server, but with a command line:
+
+```
+$ go build ./cmd/timeofday-server/
+$ ./timeofday-server --port=8080 --timezone="America/Los_Angeles"
+```
+
+And test it with curl:
+
+```
+$ curl 'http://localhost:8020/timeofday/v1/time?timezone=America/New_York'
+{"timeofday":"2018-03-30 23:44:47.701895604 -0400 EDT"}
+$ curl 'http://localhost:8020/timeofday/v1/time'
+{"timeofday":"2018-03-30 20:44:54.525313806 -0700 PDT"}
+```
+
+Note that the default timezone is now PDT, or Pacific Daily Time, which
+corresponds to the America/Los_Angeles entry in the database in late
+March.
+
 And *that's* how you add command line arguments to Swagger servers
-correctly.
+correctly without exposing your CLI settings to every other function in
+your server.  If you want to see the entirely of the source code, the
+[advanced version on the repository](https://github.com/elfsternberg/go-swagger-tutorial/tree/0.4.0)
+has it all.
 
     
     

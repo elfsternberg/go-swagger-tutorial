@@ -1,19 +1,26 @@
 # Review of Part One
 
-In [Part One of Go-Swagger](TK:), we generated a on OpenAPI 2.0 server
-with REST endpoints.  The server builds and responds to queries, but
-every valid query ends with "This feature has not yet been
-implemented."
+In
+[Part One of Go-Swagger](http://www.elfsternberg.com/2018/03/30/writing-microservice-swagger-part-1-specification/),
+we generated a on OpenAPI 2.0 server with REST endpoints.  The server
+builds and responds to queries, but every valid query ends with "This
+feature has not yet been implemented."
 
 It's time to implement the feature.
 
 I want to emphasize that with Go Swagger there is *only* one generated
-file you need to touch.  Since our project is named `timezone`, the
-file will be named `restapi/configure_timezone.go`.  Our first step
+file you need to touch.  Since our project is named `timeofday`, the
+file will be named `restapi/configure_timeofday.go`.  Our first step
 will be to break those "not implemented" functions out into their own
 Go package.  That package will be our business logic.  The configure
 file and the business logic package will be the *only* things we
 change.
+
+A reminder: The final source code for this project is available on
+Github, however Parts One & Two deal with the most common
+implementation, a server with hard-coded default values.  For these
+chapters, please consult
+[that specific version of the code](https://github.com/elfsternberg/go-swagger-tutorial/tree/0.2.0).
 
 ## Break out the business logic
 
@@ -21,16 +28,18 @@ Create a new folder in your project root and call it `timeofday`.
 
 Open up your editor and find the file `restapi/configure_timeofday.go`.
 In your `swagger.yml` file you created two endpoints and gave them each
-an `operationId`: `TimekPost` and `TimeGet`.  Inside
+an `operationId`: `TimePost` and `TimeGet`.  Inside
 `configure_timeofday.go`, you should find two corresponding assignments
 in the function `configureAPI()`: `TimeGetHandlerFunc` and
-`ClockPostHandlerFunc`.  Inside those function calls, you'll find
+`TimePostHandlerFunc`.  Inside those function calls, you'll find
 anonymous functions.
 
 I want you to take those anonymous functions, cut them out, and paste
 them into a new file inside the `timeofday/` folder.  You will also have
 to create a package name and import any packages being used.  Now your
-file, which I've called `timeofday/handlers.go`, looks like this:
+file, which I've called `timeofday/handlers.go`, looks like this (note
+that you'll have to change your import paths as you're probably not
+elfsternberg.  Heck, _I'm_ probably not elfsternberg):
 
 ```
 <<handlers.go before implementation>>=
@@ -155,7 +164,7 @@ The good path is similar:
 Now might be a good time to go look in `models/` and `/restapi/options`,
 to see what's available to you.  You'll need to do so anyway, because
 unless you go to the
-[git repository](https://github.com/elfsternberg/go-swagger-tutorial)
+[git repository](https://github.com/elfsternberg/go-swagger-tutorial/tree/0.2.0)
 and cheat, I'm going to leave it up to you to implement the PostTime().
 
 There's still one thing missing, though: the actual time of day.  We'll
@@ -205,5 +214,9 @@ $ curl 'http://localhost:8020/timeofday/v1/time?timezone=America/Los_Angeles'
 ```
 
 And that's the end of Part 2.  If you've gotten this far,
-congratulations!  On to [Part 3](TK:).
+congratulations!  Just a reminder, a working version of this server is
+available under the "0.2.0" tag
+[at the repo](https://github.com/elfsternberg/go-swagger-tutorial/tree/0.2.0).
+
+On to [Part 3](TK)
 
