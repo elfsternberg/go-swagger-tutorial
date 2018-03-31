@@ -32,6 +32,7 @@ them into a new file inside the `timeofday/` folder.  You will also have
 to create a package name and import any packages being used.  Now your
 file, which I've called `timeofday/handlers.go`, looks like this:
 
+```
 <<handlers.go before implementation>>=
 package timeofday
 
@@ -48,15 +49,18 @@ func PostTime(params operations.TimePostParams) middleware.Responder {
   return middleware.NotImplemented("operation .TimePost has not yet been implemented")
 }
 @
+```
 
 And now go back to `restapi/configure_timeofday.go`, add
 `github.com/elfsternberg/timeofday/clock` to the imports, and change the
 handler lines to look like this:
 
+```
 <<configuration lines before implementation>>=
 	api.TimeGetHandler = operations.TimeGetHandlerFunc(timeofday.GetTime)
 	api.TimePostHandler = operations.TimePostHandlerFunc(timeofday.PostTime)
 @
+```
 
 ## Implementation
 
@@ -90,6 +94,7 @@ and then return either a success message or an error message.  Looking
 in the operations files, there are a methods for good and bad returns,
 as we described in the swagger file.
 
+```
 <<gettime implementation>>=
 func GetTime(params operations.TimeGetParams) middleware.Responder {
 	var tz *string = nil
@@ -101,6 +106,7 @@ func GetTime(params operations.TimeGetParams) middleware.Responder {
 	thetime, err := getTimeOfDay(params.Timezone)
 
 @
+```
 
 The first thing to notice here is the `params` field: we're getting a
 customized, tightly bound object from the server.  There's no hope of
@@ -113,6 +119,7 @@ We then call a (thus far undefined) function called `getTimeOfDay`.
 
 Let's deal with the error case:
 
+```
 <<gettime implementation>>=
 	if err != nil {
 		return operations.NewTimeGetNotFound().WithPayload(
@@ -122,6 +129,7 @@ Let's deal with the error case:
 			})
 	}
 @
+```
 
 That's a lot of references.  We have a model, an operation, and what's
 that "swag" thing?  In order to satisfy Swagger's strictness, we use
@@ -134,6 +142,7 @@ the response with content.
 
 The good path is similar:
 
+```
 <<gettime implementation>>=
 	return operations.NewClockGetOK().WithPayload(
 		&models.Timeofday{
@@ -141,8 +150,60 @@ The good path is similar:
 		})
 }
 @
+```
 
 Now might be a good time to go look in `models/` and `/restapi/options`,
 to see what's available to you.  You'll need to do so anyway, because
 unless you go to the
 [git repository](https://github.com/elfsternberg/go-swagger-tutorial)
+and cheat, I'm going to leave it up to you to implement the PostTime().
+
+There's still one thing missing, though: the actual time of day.  We'll
+need a default, and we'll need to test to see if the default is needed.
+The implementation is straightforward:
+
+```
+<<timeofday function>>=
+func getTimeOfDay(tz *string) (*string, error) {
+        defaultTZ := "UTC"
+
+        t := time.Now()
+        if tz == nil {
+                tz = &defaultTZ
+        }
+
+        utc, err := time.LoadLocation(*tz)
+        if err != nil {
+                return nil, errors.New(fmt.Sprintf("Time zone not found: %s", *tz))
+        }
+
+        thetime := t.In(utc).String()
+        return &thetime, nil
+}
+@
+```
+
+Now, if you've written everything correctly, and the compiler admits
+that you have (or you can cheat and download the 0.2.0-tagged version
+from the the repo), you'll be able to build, compile, and run the
+server, and see it working:
+
+```
+$ go build ./cmd/timeofday-server/
+$ ./timeofday-server --port=8080
+```
+
+And then test it with curl:
+
+```
+$ curl 'http://localhost:8020/timeofday/v1/time'
+{"timeofday":"2018-03-31 02:57:48.814683375 +0000 UTC"}
+$ curl 'http://localhost:8020/timeofday/v1/time?timezone=UTC'
+{"timeofday":"2018-03-31 02:57:50.443200906 +0000 UTC"}
+$ curl 'http://localhost:8020/timeofday/v1/time?timezone=America/Los_Angeles'
+{"timeofday":"2018-03-30 19:57:59.886650128 -0700 PDT"}
+```
+
+And that's the end of Part 2.  If you've gotten this far,
+congratulations!  On to [Part 3](TK:).
+
